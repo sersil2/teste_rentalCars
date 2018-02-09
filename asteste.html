@@ -1,0 +1,118 @@
+<html>
+  <head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<style>
+input::-webkit-calendar-picker-indicator {
+	display: none;
+}
+</style>
+  </head>
+  <body id="" class="home" data-page-type="HomePage">
+      <font face = "Tahoma">
+
+    <script>
+
+      function cleanSearchLocationBox(){
+	document.getElementById('listalocID').innerHTML = '';
+      }
+
+      function searchLocationBoxChange(){
+	var searchValue=document.getElementById('searchLocationBoxID').value;
+	if(searchValue.length>1){
+	  startJsonSearch(searchValue);
+	}else{
+	  cleanSearchLocationBox();
+	}
+      }
+      
+      function startJsonSearch(searchValue){
+        var list = document.getElementById('listalocID');
+        var locationName = "";
+        var placeTypeDesc = "";
+        $.ajax({
+                   url: "https://www.rentalcars.com/FTSAutocomplete.do?solrIndex=fts_en&solrRows={6}&solrTerm={"+searchValue+"}",
+                    dataType: "json",
+                    complete: function (data) {
+                        if (data.responseText != "") {
+                            var jsonResponse = eval("(" + data.responseText + ")");
+	  		      cleanSearchLocationBox();
+
+			    if(jsonResponse.results.docs.length>0){
+			      for(i=0;i<jsonResponse.results.docs.length;i++){
+				var option = document.createElement('option');
+				var item = jsonResponse.results.docs[i];
+
+			        locationName = "";
+				placeTypeDesc = "";
+				if(jsonResponse.results.numFound=="0"){
+				  option.id=0;
+				  option.value =searchValue;
+				  option.label=item.name;
+				list.appendChild(option);
+
+				} else {
+
+        				if (item.placeType == "A") {
+            			  		locationName = " (" + item.iata + ")";
+				  		placeTypeDesc = "Airport";
+			       		}
+
+       					if (item.placeType == "C") {
+ 				  		placeTypeDesc = "City";
+			       		 }
+       					if (item.placeType == "T") {
+ 				 		 placeTypeDesc = "Station";
+			       		 }
+
+					option.id=jsonResponse.results.docs[i].placeKey;
+ 
+					option.value = placeTypeDesc+" - " +item.name+locationName +" - " +item.region + ","+item.country;
+				list.appendChild(option);
+
+				}
+			      }
+			    }
+                         }
+		    }
+                })
+          
+
+      }
+
+
+    </script>
+    <form name="GetSearchResultsForm" method="get" action="/GetSearchResults" accept-charset="UTF-8" id="GetSearchResultsFormID">
+      <table width="50%" border="0" cellpadding="0" cellspacing="0" bgcolor="#ffdf66">
+	<tr>
+	  <td width="5%" height="50"></td>
+	  <td width="90%">
+	    <h2>Where are you going?</h2>
+	  </td>
+	  <td></td>
+	</tr>
+	<tr>
+	  <td></td>
+	  <td onclick="document.getElementById('searchLocationBoxID').focus()"><font color="#6b6b47">Pick-up Location</font></td>
+	  <td></td>
+	</tr>
+	<tr>
+	  <td></td>
+	  <td>
+	    <input list="listalocID" list="listalocIDNoResults" type="text" id="searchLocationBoxID" name="searchLocationBox" autocomplete="off" value=""
+	      placeholder="city, airport, station, region, district…" aria-required="true" style="width:100%; height:40px;
+	      border: 1px solid #00b8e6 webkit-calendar-picker-indicator display: none;}" onkeyup="searchLocationBoxChange()"/>
+	  </td>
+	  <td></td>
+	</tr>
+	<tr>
+	  <td></td>
+	  <td>
+	    <datalist id="listalocID"></datalist>
+	  </td>
+	  <td></td>
+	</tr>
+      </table>
+    </form>
+</font>
+  </body>
+</html>
